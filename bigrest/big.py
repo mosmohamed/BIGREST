@@ -117,7 +117,7 @@ class BIG:
         if response.status_code != 200:
             raise RESTAPIError(response, self.debug)
         response_json = response.json()
-        if "items" in response_json:
+        if "items" in response_json and "totalPages" not in response_json:
             objects = []
             for obj in response_json["items"]:
                 objects.append(RESTObject(obj))
