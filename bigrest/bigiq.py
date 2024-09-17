@@ -82,7 +82,7 @@ class BIGIQ(BIG):
             response = self.session.get(url, timeout=self.timeout)
             if response.status_code != 200:
                 raise RESTAPIError(response, self.debug)
-            status = response.json()["status"]
+            status = response.json()["_taskState"]
             if status == "FAILED":
                 raise RESTAPIError(response, self.debug)
             if status == "FINISHED":
@@ -110,7 +110,7 @@ class BIGIQ(BIG):
         response = self.session.get(url, timeout=self.timeout)
         if response.status_code != 200:
             raise RESTAPIError(response, self.debug)
-        status = response.json()["status"]
+        status = response.json()["_taskState"]
         if status == "FAILED":
             raise RESTAPIError(response, self.debug)
         if status == "FINISHED":

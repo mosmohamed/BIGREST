@@ -64,9 +64,9 @@ class BIGIP(BIG):
         response = self.session.post(url, json=data, timeout=self.timeout)
         if response.status_code not in [200, 201]:
             raise RESTAPIError(response, self.debug)
-        id_ = response.json()["id"]
+        id_ = response.json()["_taskId"]
         data = {}
-        data["status"] = "VALIDATING"
+        data["_taskState"] = "VALIDATING"
         url = f"{url}/{id_}"
         response_put = self.session.get(url, timeout=self.timeout)
         if response_put.status_code not in [200, 202]:
@@ -97,7 +97,7 @@ class BIGIP(BIG):
             response = self.session.get(url, timeout=self.timeout)
             if response.status_code != 200:
                 raise RESTAPIError(response, self.debug)
-            status = response.json()["status"]
+            status = response.json()["_taskState"]
             if status == "FAILURE":
                 raise RESTAPIError(response, self.debug)
             if status == "COMPLETED":
@@ -125,7 +125,7 @@ class BIGIP(BIG):
         response = self.session.get(url, timeout=self.timeout)
         if response.status_code != 200:
             raise RESTAPIError(response, self.debug)
-        status = response.json()["status"]
+        status = response.json()["_taskState"]
         if status == "FAILURE":
             raise RESTAPIError(response, self.debug)
         if status == "COMPLETED":
