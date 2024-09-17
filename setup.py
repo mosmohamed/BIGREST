@@ -20,3 +20,4 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
 )
+# build command is  python setup.py sdist bdist_wheel
