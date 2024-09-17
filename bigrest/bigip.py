@@ -68,9 +68,12 @@ class BIGIP(BIG):
         data = {}
         data["_taskState"] = "VALIDATING"
         url = f"{url}/{id_}"
-        response_put = self.session.get(url, timeout=self.timeout)
+        response_put = self.session.put(url, json=data, timeout=self.timeout)
         if response_put.status_code not in [200, 202]:
-            raise RESTAPIError(response_put)
+            print(response_put.json())
+        response_get = self.session.get(url, timeout=self.timeout)
+        if response_get.status_code not in [200, 202]:
+            raise RESTAPIError(response_get, debug=self.debug)
         return RESTObject(response.json())
 
     def task_wait(self, obj: RESTObject, interval: int = 10) -> RESTObject:
@@ -95,6 +98,9 @@ class BIGIP(BIG):
             if self.request_token or self.refresh_token is not None:
                 self._check_token()
             response = self.session.get(url, timeout=self.timeout)
+            if response.status_code == 500 and "AsyncContext timeout" in response.json():
+                print(f'AsyncContext timeout will wait {interval} seconds')
+                time.sleep(interval)
             if response.status_code != 200:
                 raise RESTAPIError(response, self.debug)
             status = response.json()["_taskState"]
