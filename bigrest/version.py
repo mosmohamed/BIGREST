@@ -1,6 +1,6 @@
 """File with version and history information."""
 
-__version__ = '1.7.4'
+__version__ = '1.7.5'
 
 """
 History Information:
@@ -51,4 +51,6 @@ History Information:
     Fixed large lines.
 1.7.4
     Add Pagination to load request
+1.7.5
+    fix task attributes
 """
