@@ -1,6 +1,6 @@
 """File with version and history information."""
 
-__version__ = '1.7.5'
+__version__ = '1.7.7'
 
 """
 History Information:
@@ -55,4 +55,6 @@ History Information:
     fix task attributes
 1.7.6
     fix AsyncContext timeout
+1.7.6
+    fix download return response error message
 """

@@ -5,6 +5,8 @@
 # Turns all annotations into string literals.
 # This is one exception to the external import rule.
 from __future__ import annotations
+
+import traceback
 from typing import Union
 import requests
 import time
@@ -307,7 +309,8 @@ class BIG:
             {"Content-Range": f"0-{range_size}/0"})
         response = self.session.get(url, timeout=self.timeout)
         if response.status_code not in range(200, 207):
-            raise RESTAPIError(self.response, self.debug)
+            print(traceback.format_exc())
+            raise RESTAPIError(response, self.debug)
         content_range = response.headers.get("Content-Range")
         range_start = range_size + 1
         range_end = range_start + range_size
