@@ -1,6 +1,6 @@
 """File with version and history information."""
 
-__version__ = '1.7.8'
+__version__ = '1.7.9'
 
 """
 History Information:
@@ -59,4 +59,6 @@ History Information:
     fix download return response error message
 1.7.8
     fix task id if task is import policy
+1.7.9
+    fix task state if task is import policy
 """

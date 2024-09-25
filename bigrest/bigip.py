@@ -66,14 +66,15 @@ class BIGIP(BIG):
             raise RESTAPIError(response, self.debug)
         if response.json()["kind"] == "tm:asm:tasks:import-policy:import-policy-taskstate":
             id_ = response.json()["id"]
+            data = {}
         else:
             id_ = response.json()["_taskId"]
-        data = {}
-        data["_taskState"] = "VALIDATING"
+            data = {"_taskState": "VALIDATING"}
         url = f"{url}/{id_}"
-        response_put = self.session.put(url, json=data, timeout=self.timeout)
-        if response_put.status_code in [200, 202]:
-            print(response_put.json())
+        if data:
+            response_put = self.session.put(url, json=data, timeout=self.timeout)
+            if response_put.status_code in [200, 202]:
+                print(response_put.json())
         response_get = self.session.get(url, timeout=self.timeout)
         if response_get.status_code not in [200, 202]:
             raise RESTAPIError(response_get, debug=self.debug)
