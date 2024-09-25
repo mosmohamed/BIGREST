@@ -1,6 +1,6 @@
 """File with version and history information."""
 
-__version__ = '1.7.7'
+__version__ = '1.7.8'
 
 """
 History Information:
@@ -55,6 +55,8 @@ History Information:
     fix task attributes
 1.7.6
     fix AsyncContext timeout
-1.7.6
+1.7.7
     fix download return response error message
+1.7.8
+    fix task id if task is import policy
 """
