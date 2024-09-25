@@ -107,7 +107,10 @@ class BIGIP(BIG):
                 time.sleep(interval)
             if response.status_code != 200:
                 raise RESTAPIError(response, self.debug)
-            status = response.json()["_taskState"]
+            if response.json()["kind"] == "tm:asm:tasks:import-policy:import-policy-taskstate":
+                status = response.json()["state"]
+            else:
+                status = response.json()["_taskState"]
             if status == "FAILURE":
                 raise RESTAPIError(response, self.debug)
             if status == "COMPLETED":
@@ -135,7 +138,10 @@ class BIGIP(BIG):
         response = self.session.get(url, timeout=self.timeout)
         if response.status_code != 200:
             raise RESTAPIError(response, self.debug)
-        status = response.json()["_taskState"]
+        if response.json()["kind"] == "tm:asm:tasks:import-policy:import-policy-taskstate":
+            status = response.json()["state"]
+        else:
+            status = response.json()["_taskState"]
         if status == "FAILURE":
             raise RESTAPIError(response, self.debug)
         if status == "COMPLETED":
