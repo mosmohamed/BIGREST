@@ -1,6 +1,6 @@
 """File with version and history information."""
 
-__version__ = '1.7.9'
+__version__ = '1.7.11'
 
 """
 History Information:
@@ -61,4 +61,8 @@ History Information:
     fix task id if task is import policy
 1.7.9
     fix task state if task is import policy
+1.7.10
+    fix task state if task going in infinity loop
+1.7.11
+    fix task state if task status changed print response
 """

@@ -64,7 +64,7 @@ class BIGIP(BIG):
         response = self.session.post(url, json=data, timeout=self.timeout)
         if response.status_code not in [200, 201]:
             raise RESTAPIError(response, self.debug)
-        if response.json()["kind"] == "tm:asm:tasks:import-policy:import-policy-taskstate":
+        if "id" in response.json() and response.json() and "status" in response.json():
             id_ = response.json()["id"]
             data = {}
         else:
@@ -80,43 +80,57 @@ class BIGIP(BIG):
             raise RESTAPIError(response_get, debug=self.debug)
         return RESTObject(response_get.json())
 
-    def task_wait(self, obj: RESTObject, interval: int = 10) -> RESTObject:
+    def task_wait(self, obj: RESTObject, interval: int = 10, wait_async_time=600, set_to_failed_after=None) -> RESTObject:
         """
         Continually queries the status of the task until it finishes.
 
         Sends an HTTP GET request to the iControl REST API.
 
         Arguments:
+            set_to_failed_after: set task as failed after custom time in sec, if None will proceed without brake
+            wait_async_time: The time to wait for the task to complete. if f5 return error 500 with AsyncContext timeout
             obj: Object that represents the task.
             interval: The interval the queries will be made.
 
         Exceptions:
             RESTAPIError: Raised when iControl REST API returns an error.
         """
-
+        current_wait_time = 0
+        while_loop_time = 0
+        print_if_state_changed = None
         if self.request_token or self.refresh_token is not None:
             self._check_token()
         path = self._get_path(obj)
         url = self._get_url(path)
         while True:
+            while_loop_time += interval
             if self.request_token or self.refresh_token is not None:
                 self._check_token()
             response = self.session.get(url, timeout=self.timeout)
-            if response.status_code == 500 and "AsyncContext timeout" in response.text:
+            if response.status_code == 500 and "AsyncContext timeout" in response.text and current_wait_time <= wait_async_time:
                 print(f'AsyncContext timeout will wait {interval} seconds')
+                current_wait_time += interval
                 time.sleep(interval)
-            if response.status_code != 200:
+            elif set_to_failed_after is not None and while_loop_time >= set_to_failed_after:
                 raise RESTAPIError(response, self.debug)
-            if response.json()["kind"] == "tm:asm:tasks:import-policy:import-policy-taskstate":
-                status = response.json()["state"]
             else:
-                status = response.json()["_taskState"]
-            if status == "FAILURE":
-                raise RESTAPIError(response, self.debug)
-            if status == "COMPLETED":
-                return RESTObject(response.json())
-            else:
-                time.sleep(interval)
+                if response.status_code != 200:
+                    raise RESTAPIError(response, self.debug)
+                if "id" in response.json() and response.json() and "status" in response.json():
+                    status = response.json()["status"]
+                else:
+                    status = response.json()["_taskState"]
+
+                if print_if_state_changed != status:
+                    print_if_state_changed = status
+                    print(f'response : {response.json()}')
+
+                if status in ["FAILURE", "FAILED"]:
+                    raise RESTAPIError(response, self.debug)
+                if status == "COMPLETED":
+                    return RESTObject(response.json())
+                else:
+                    time.sleep(interval)
 
     def task_completed(self, obj: RESTObject) -> bool:
         """
@@ -138,11 +152,11 @@ class BIGIP(BIG):
         response = self.session.get(url, timeout=self.timeout)
         if response.status_code != 200:
             raise RESTAPIError(response, self.debug)
-        if response.json()["kind"] == "tm:asm:tasks:import-policy:import-policy-taskstate":
-            status = response.json()["state"]
+        if "id" in response.json() and response.json() and "status" in response.json():
+            status = response.json()["status"]
         else:
             status = response.json()["_taskState"]
-        if status == "FAILURE":
+        if status in ["FAILURE", "FAILED"]:
             raise RESTAPIError(response, self.debug)
         if status == "COMPLETED":
             return True
@@ -272,9 +286,7 @@ class BIGIP(BIG):
             self._check_token()
         url = self._get_url(f"/mgmt/tm/transaction/{self._transaction}")
         self.session.headers.pop("X-F5-REST-Coordination-Id")
-        data = {}
-        data["validateOnly"] = True
-        data["state"] = "VALIDATING"
+        data = {"validateOnly": True, "state": "VALIDATING"}
         response = self.session.patch(url, json=data, timeout=self.timeout)
         if response.status_code != 200:
             raise RESTAPIError(response, self.debug)
